@@ -48,3 +48,4 @@ Useful applications:
 - [Xastir](https://xastir.org/index.php/Main_Page) (APRS)
 - [tncattach](https://github.com/markqvist/tncattach) (Ethernet compatible kissattach replacement)
 - [BPQ32](http://www.cantab.net/users/john.wiseman/Documents/index.html) (Amateur Radio BBS Application)
+- [APRSDroid](https://aprsdroid.org/)
