@@ -4,6 +4,9 @@
 // Modifications and additions copyright 2018 by Mark Qvist
 // Obviously still under the MIT license.
 
+// Further modifications and additions copyright 2020 by
+// Steve Miller. Again, still under the MIT License.
+
 #include "LoRa.h"
 
 // Registers
