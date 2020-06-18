@@ -58,7 +58,7 @@
   // Default LoRa settings
   int       loraSpreadingFactor = 8;
   int       loraCodingRate      = 7;
-  int       loraTxPower         = 23;
+  int       loraTxPower         = 20;
   uint32_t  loraBandwidth       = 125E6;
   uint32_t  loraFrequency       = 43845E4;
 
