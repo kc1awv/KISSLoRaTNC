@@ -19,7 +19,7 @@ Add in this line at line #72:
 
     #define digitalPinToInterrupt(p) ((p) == 10? 0: (p) == 11? 1: (p) == 2? 2: NOT_AN_INTERRUPT)
     
-Then build again.
+Uncomment the last block in platformio.ini and then build again.
 
 ---
 
