@@ -76,9 +76,7 @@ int LoRaClass::begin(long frequency)
 {
   // setup pins
   pinMode(_ss, OUTPUT);
-  // set SS high
-  digitalWrite(_ss, HIGH);
-
+  
   if (_reset != -1) {
     pinMode(_reset, OUTPUT);
 
@@ -139,8 +137,8 @@ void LoRaClass::setTxPower(int level, int outputPin)
     // PA BOOST
     if (level < 2) {
       level = 2;
-    } else if (level > 17) {
-      level = 17;
+    } else if (level > 30) {
+      level = 30;
     }
 
     writeRegister(REG_PA_CONFIG, PA_BOOST | (level - 2));
