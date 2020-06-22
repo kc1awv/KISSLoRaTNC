@@ -41,6 +41,7 @@
 #define REG_SYNC_WORD            0x39
 #define REG_DIO_MAPPING_1        0x40
 #define REG_VERSION              0x42
+#define REG_PA_DAC               0x4D
 
 // Modes
 #define MODE_LONG_RANGE_MODE     0x80
@@ -50,8 +51,14 @@
 #define MODE_RX_CONTINUOUS       0x05
 #define MODE_RX_SINGLE           0x06
 
-// PA config
-#define PA_BOOST                 0x80
+// PA_CONFIG                     0x09
+#define PA_SELECT                0x80
+#define PA_MAX_POWER             0x70
+#define PA_OUTPUT_POWER          0x0f
+
+// PA_DAC config
+#define PA_DAC_DISABLE             0x04
+#define PA_DAC_ENABLE              0x07
 
 // IRQ masks
 #define IRQ_TX_DONE_MASK           0x08
@@ -131,8 +138,7 @@ void LoRaClass::setTxPower(int level, int outputPin)
     } else if (level > 14) {
       level = 14;
     }
-
-    writeRegister(REG_PA_CONFIG, 0x70 | level);
+    writeRegister(REG_PA_CONFIG, PA_MAX_POWER | (level +1));
   } else {
     // PA BOOST
     if (level < 2) {
@@ -140,8 +146,12 @@ void LoRaClass::setTxPower(int level, int outputPin)
     } else if (level > 23) {
       level = 23;
     }
-
-    writeRegister(REG_PA_CONFIG, PA_BOOST | (level - 2));
+    if (level > 20) {
+      writeRegister(REG_PA_DAC, PA_DAC_ENABLE);
+      level -= 3;
+    } else {
+      writeRegister(REG_PA_DAC, PA_DAC_DISABLE);
+    }
   }
 }
 
