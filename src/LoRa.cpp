@@ -137,8 +137,8 @@ void LoRaClass::setTxPower(int level, int outputPin)
     // PA BOOST
     if (level < 2) {
       level = 2;
-    } else if (level > 30) {
-      level = 30;
+    } else if (level > 23) {
+      level = 23;
     }
 
     writeRegister(REG_PA_CONFIG, PA_BOOST | (level - 2));
