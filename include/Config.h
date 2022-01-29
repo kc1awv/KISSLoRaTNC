@@ -59,7 +59,7 @@
   int       loraSpreadingFactor = 8;
   int       loraCodingRate      = 7;
   int       loraTxPower         = 20;
-  uint32_t  loraBandwidth       = 125E6;
+  uint32_t  loraBandwidth       = 125E3;
   uint32_t  loraFrequency       = 43845E4;
 
   uint8_t txBuffer[MTU];
@@ -71,8 +71,6 @@
   bool outboundReady = false;
 
   bool statSignalDetected = false;
-  bool statSignalSynced   = false;
-  bool statRxOngoing      = false;
   bool dcd                = false;
   bool dcdLed             = false;
   bool dcdWaiting         = false;

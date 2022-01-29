@@ -128,7 +128,6 @@ int LoRaClass::begin(long frequency)
   return 1;
 }
 
-
 void LoRaClass::setTxPower(int level, int outputPin)
 {
   if (PA_OUTPUT_RFO_PIN == outputPin) {
@@ -138,20 +137,22 @@ void LoRaClass::setTxPower(int level, int outputPin)
     } else if (level > 14) {
       level = 14;
     }
-    writeRegister(REG_PA_CONFIG, PA_MAX_POWER | (level +1));
+    writeRegister(REG_PA_DAC, PA_DAC_DISABLE);
+    writeRegister(REG_PA_CONFIG, PA_MAX_POWER | level);
   } else {
     // PA BOOST
     if (level < 2) {
       level = 2;
-    } else if (level > 23) {
-      level = 23;
+    } else if (level > 20) {
+      level = 20;
     }
-    if (level > 20) {
+    if (level > 17) {
       writeRegister(REG_PA_DAC, PA_DAC_ENABLE);
       level -= 3;
     } else {
       writeRegister(REG_PA_DAC, PA_DAC_DISABLE);
     }
+    writeRegister(REG_PA_CONFIG, PA_SELECT | (level - 2));
   }
 }
 
