@@ -99,26 +99,15 @@ void serialCallback(uint8_t txByte) {
 void updateModemStatus() {
   uint8_t status = LoRa.modemStatus();
   lastStatusUpdate = millis();
-  if (status & (SIG_DETECT == 0x01)) {
+  if ((status & SIG_DETECT) != 0) {
     statSignalDetected = true;
+    //Serial.println("SIG_DETECT");
   }
   else {
     statSignalDetected = false;
   }
-  if (status & (SIG_SYNCED == 0x01)) {
-    statSignalSynced = true;
-  }
-  else {
-    statSignalSynced = false;
-  }
-  if (status & (RX_ONGOING == 0x01)) {
-    statRxOngoing = true;
-  }
-  else {
-    statRxOngoing = false;
-  }
 
-  if (statSignalDetected || statSignalSynced || statRxOngoing) {
+  if (statSignalDetected) {
     if (dcdCount < dcdThreshold) {
       dcdCount++;
       dcd = true;
@@ -210,6 +199,7 @@ bool startRadio() {
     Serial.println("SUCCESS");
     LoRa.setSpreadingFactor(loraSpreadingFactor);
     LoRa.setCodingRate4(loraCodingRate);
+    LoRa.setSignalBandwidth(loraBandwidth);
     LoRa.enableCrc();
     LoRa.onReceive(receiveCallback);
     LoRa.receive();
