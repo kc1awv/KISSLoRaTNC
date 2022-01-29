@@ -1,18 +1,40 @@
 // Copyright (c) Sandeep Mistry. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+// Reimported from https://github.com/sandeepmistry/arduino-LoRa
+// https://github.com/sandeepmistry/arduino-LoRa/commit/01bf044b769a2ab276b59fa8cb24e587b24fc787
+
+// Added modemStatus()
+
+
 #ifndef LORA_H
 #define LORA_H
 
 #include <Arduino.h>
 #include <SPI.h>
 
-#define LORA_DEFAULT_SS_PIN    10
-#define LORA_DEFAULT_RESET_PIN 9
-#define LORA_DEFAULT_DIO0_PIN  2
+#if defined(ARDUINO_SAMD_MKRWAN1300)
+#define LORA_DEFAULT_SPI           SPI1
+#define LORA_DEFAULT_SPI_FREQUENCY 200000
+#define LORA_DEFAULT_SS_PIN        LORA_IRQ_DUMB
+#define LORA_DEFAULT_RESET_PIN     -1
+#define LORA_DEFAULT_DIO0_PIN      -1
+#elif defined(ARDUINO_SAMD_MKRWAN1310)
+#define LORA_DEFAULT_SPI           SPI1
+#define LORA_DEFAULT_SPI_FREQUENCY 200000
+#define LORA_DEFAULT_SS_PIN        LORA_IRQ_DUMB
+#define LORA_DEFAULT_RESET_PIN     -1
+#define LORA_DEFAULT_DIO0_PIN      LORA_IRQ
+#else
+#define LORA_DEFAULT_SPI           SPI
+#define LORA_DEFAULT_SPI_FREQUENCY 8E6 
+#define LORA_DEFAULT_SS_PIN        10
+#define LORA_DEFAULT_RESET_PIN     9
+#define LORA_DEFAULT_DIO0_PIN      2
+#endif
 
-#define PA_OUTPUT_RFO_PIN      0
-#define PA_OUTPUT_PA_BOOST_PIN 1
+#define PA_OUTPUT_RFO_PIN          0
+#define PA_OUTPUT_PA_BOOST_PIN     1
 
 class LoRaClass : public Stream {
 public:
@@ -22,13 +44,14 @@ public:
   void end();
 
   int beginPacket(int implicitHeader = false);
-  int endPacket();
+  int endPacket(bool async = false);
 
   int parsePacket(int size = 0);
   int packetRssi();
-  uint8_t packetRssiRaw();
   float packetSnr();
   long packetFrequencyError();
+
+  int rssi();
 
   // from Print
   virtual size_t write(uint8_t byte);
@@ -40,24 +63,32 @@ public:
   virtual int peek();
   virtual void flush();
 
+#ifndef ARDUINO_SAMD_MKRWAN1300
   void onReceive(void(*callback)(int));
+  void onTxDone(void(*callback)());
 
   void receive(int size = 0);
+#endif
   void idle();
   void sleep();
 
   void setTxPower(int level, int outputPin = PA_OUTPUT_PA_BOOST_PIN);
-  uint32_t getFrequency();
   void setFrequency(long frequency);
   void setSpreadingFactor(int sf);
-  long getSignalBandwidth();
   void setSignalBandwidth(long sbw);
   void setCodingRate4(int denominator);
   void setPreambleLength(long length);
   void setSyncWord(int sw);
-  uint8_t modemStatus();
   void enableCrc();
   void disableCrc();
+  void enableInvertIQ();
+  void disableInvertIQ();
+  
+  void setOCP(uint8_t mA); // Over Current Protection control
+  
+  void setGain(uint8_t gain); // Set LNA gain
+
+  uint8_t modemStatus(); // Added for KISSLoRaTNC
 
   // deprecated
   void crc() { enableCrc(); }
@@ -66,6 +97,7 @@ public:
   byte random();
 
   void setPins(int ss = LORA_DEFAULT_SS_PIN, int reset = LORA_DEFAULT_RESET_PIN, int dio0 = LORA_DEFAULT_DIO0_PIN);
+  void setSPI(SPIClass& spi);
   void setSPIFrequency(uint32_t frequency);
 
   void dumpRegisters(Stream& out);
@@ -75,6 +107,12 @@ private:
   void implicitHeaderMode();
 
   void handleDio0Rise();
+  bool isTransmitting();
+
+  int getSpreadingFactor();
+  long getSignalBandwidth();
+
+  void setLdoFlag();
 
   uint8_t readRegister(uint8_t address);
   void writeRegister(uint8_t address, uint8_t value);
@@ -84,6 +122,7 @@ private:
 
 private:
   SPISettings _spiSettings;
+  SPIClass* _spi;
   int _ss;
   int _reset;
   int _dio0;
@@ -91,6 +130,7 @@ private:
   int _packetIndex;
   int _implicitHeaderMode;
   void (*_onReceive)(int);
+  void (*_onTxDone)();
 };
 
 extern LoRaClass LoRa;
