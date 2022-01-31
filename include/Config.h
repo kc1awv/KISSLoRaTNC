@@ -56,11 +56,24 @@
   const int  loraRxTurnaround = 50;
 
   // Default LoRa settings
-  int       loraSpreadingFactor = 8;
-  int       loraCodingRate      = 7;
-  int       loraTxPower         = 20;
-  uint32_t  loraBandwidth       = 125E3;
-  uint32_t  loraFrequency       = 43845E4;
+  struct LoraSettings {
+    int       spreadingFactor;
+    int       codingRate;
+    int       txPower;
+    uint32_t  bandwidth;
+    uint32_t  frequency;
+  };
+
+  LoraSettings loraSettings;
+
+  const int defaultSpreadingFactor = 12; //8;
+  const int defaultCodingRate = 5; //7;
+  const int defaultTxPower = 20;
+  const uint32_t defaultBandwidth = 125E3;
+  const uint32_t defaultFrequency = 433775E3; //43845E4;
+
+  const int settingsAddress = 0;
+  const int crcAddress = settingsAddress + sizeof(LoraSettings);
 
   uint8_t txBuffer[MTU];
   uint8_t rxBuffer[MTU];
