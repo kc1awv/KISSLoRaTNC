@@ -9,6 +9,7 @@
 
   #define MCU_328P 0x90
   #define MCU_32U4 0x91
+  #define MCU_ESP32 0x92
 
   #if defined(__AVR_ATmega328P__)
     #define MCU_VARIANT MCU_328P
@@ -19,6 +20,9 @@
   #elif defined(__AVR_ATmega1284P__)
     #define MCU_VARIANT MCU_1284P
     #pragma message ("Firmware is being compiled for ATmega1284P based boards")
+  #elif defined(ESP32)
+    #define MCU_VARIANT MCU_ESP32
+    #pragma message ("Firmware is being compiled for ESP32 based boards")
   #else
     #error "The firmware cannot be compiled for the selected MCU variant"
   #endif
@@ -48,6 +52,12 @@
     const int pinNSS  = 4;
     const int pinNRST = 3;
     const int pinDIO0 = 2;
+  #endif
+
+  #if MCU_VARIANT == MCU_ESP32
+    const int pinNSS  = 18;
+    const int pinNRST = 14;
+    const int pinDIO0 = 26;
   #endif
 
   const long serialBaudRate   = 38400;
