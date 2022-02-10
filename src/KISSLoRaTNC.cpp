@@ -56,6 +56,9 @@ void saveSettings() {
 }
 
 void restoreSettings() {
+  // upon exit, device will be in idle mode
+  // probably would be smarter to check mode on entry/restore on exit
+  
   unsigned long savedCrc;
   EEPROM.get(settingsAddress, loraSettings);
   EEPROM.get(crcAddress, savedCrc);
@@ -72,6 +75,11 @@ void restoreSettings() {
   else {
     //Serial.println("GOOD_CRC");
   }
+  LoRa.idle();
+  LoRa.setSpreadingFactor(loraSettings.spreadingFactor);
+  LoRa.setCodingRate4(loraSettings.codingRate);
+  LoRa.setSignalBandwidth(loraSettings.bandwidth);
+  LoRa.setTxPower(loraSettings.txPower);
 }
 
 void transmit(size_t size) {
@@ -128,19 +136,24 @@ void serialCallback(uint8_t txByte) {
           case HW_RESTORE:
             if (frameLength == 1) {
               restoreSettings();
+              LoRa.receive();
               setHardware = true;
             }
           case HW_SF:
             if (frameLength == 2) {
               loraSettings.spreadingFactor = (int)(txBuffer[1]);
+              LoRa.idle();
               LoRa.setSpreadingFactor(loraSettings.spreadingFactor);
+              LoRa.receive();
               setHardware = true;
             }
             break;
           case HW_CR:
             if (frameLength == 2) {
               loraSettings.codingRate = (int)(txBuffer[1]);
+              LoRa.idle();
               LoRa.setCodingRate4(loraSettings.codingRate);
+              LoRa.receive();
               setHardware = true;
             }
             break;
@@ -150,14 +163,18 @@ void serialCallback(uint8_t txByte) {
                 (uint32_t)(txBuffer[2]) << 16 |
                 (uint32_t)(txBuffer[3]) << 8 |
                 (uint32_t)(txBuffer[4]);
+              LoRa.idle();
               LoRa.setSignalBandwidth(loraSettings.bandwidth);
+              LoRa.receive();
               setHardware = true;
             }
             break;
           case HW_POWER:
             if (frameLength == 2) {
               loraSettings.txPower = (int)(txBuffer[1]);
+              LoRa.idle();
               LoRa.setTxPower(loraSettings.txPower);
+              LoRa.receive();
               setHardware = true;
             }
             break;
@@ -167,7 +184,9 @@ void serialCallback(uint8_t txByte) {
                 (uint32_t)(txBuffer[2]) << 16 |
                 (uint32_t)(txBuffer[3]) << 8 |
                 (uint32_t)(txBuffer[4]);
+              LoRa.idle();
               LoRa.setFrequency(loraSettings.frequency);
+              LoRa.receive();
               setHardware = true;
             }
             break;
@@ -316,10 +335,7 @@ bool startRadio() {
   }
   else {
     Serial.println("SUCCESS");
-    LoRa.setSpreadingFactor(loraSettings.spreadingFactor);
-    LoRa.setCodingRate4(loraSettings.codingRate);
-    LoRa.setSignalBandwidth(loraSettings.bandwidth);
-    LoRa.setTxPower(loraSettings.txPower);
+    restoreSettings();
     LoRa.enableCrc();
     LoRa.onReceive(receiveCallback);
     LoRa.receive();
@@ -349,7 +365,6 @@ void setup() {
   #if MCU_VARIANT == MCU_ESP32
     EEPROM.begin(sizeof(LoraSettings) + sizeof(uint32_t));
   #endif
-  restoreSettings();
 
   startRadio();
 }
