@@ -76,6 +76,7 @@ void restoreSettings() {
     //Serial.println("GOOD_CRC");
   }
   LoRa.idle();
+  LoRa.setFrequency(loraSettings.frequency);
   LoRa.setSpreadingFactor(loraSettings.spreadingFactor);
   LoRa.setCodingRate4(loraSettings.codingRate);
   LoRa.setSignalBandwidth(loraSettings.bandwidth);
@@ -283,14 +284,39 @@ void getPacketData(int packetLength) {
 }
 
 void receiveCallback(int packetSize) {
-  readLength = 0;
-  lastRssi = LoRa.packetRssi();
-  getPacketData(packetSize);
+  if (!receiveReady) {
+    receivePacketSize = packetSize;
+    receiveReady = true;
+  }
+}
 
-  // Send RSSI
+void receive() {
+  readLength = 0;
+  lastRssi = (int16_t)LoRa.packetRssi();
+  lastSnr = LoRa.packetSnr();
+  getPacketData(receivePacketSize);
+  receiveReady = false;
+
+  // Send SNR and RSSI
   Serial.write(FEND);
-  Serial.write(HW_RSSI);
-  Serial.write((uint8_t)(lastRssi-rssiOffset));
+  Serial.write(CMD_HARDWARE);
+  Serial.write(HW_SNR_RSSI);
+  snrRssi[0] = (uint8_t)(lastSnr);
+  snrRssi[1] = (uint8_t)(lastRssi >> 8);
+  snrRssi[2] = (uint8_t)(lastRssi & 0xff);
+  for (uint8_t i = 0; i < 3; i++) {
+    if (snrRssi[i] == FEND) {
+        Serial.write(FESC);
+        Serial.write(TFEND);
+    }
+    else if (snrRssi[i] == FESC) {
+        Serial.write(FESC);
+        Serial.write(TFESC);
+    }
+    else {
+      Serial.write(snrRssi[i]);
+    }
+  }
   Serial.write(FEND);
 
   // And then write the entire packet
@@ -328,6 +354,7 @@ void escapedSerialWrite (uint8_t bufferByte) {
 }
 
 bool startRadio() {
+  restoreSettings();
   if (!LoRa.begin(loraSettings.frequency)) {
     kissIndicateError(ERROR_INITRADIO);
     Serial.println("FAIL");
@@ -335,7 +362,6 @@ bool startRadio() {
   }
   else {
     Serial.println("SUCCESS");
-    restoreSettings();
     LoRa.enableCrc();
     LoRa.onReceive(receiveCallback);
     LoRa.receive();
@@ -371,6 +397,9 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  if (receiveReady) {
+    receive();
+  }
   checkModemStatus();
   if (isOutboundReady() && !SERIAL_READING) {
     if (!dcdWaiting) {
