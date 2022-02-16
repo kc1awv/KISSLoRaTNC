@@ -13,7 +13,7 @@
   #define CMD_DATA          0x00
   #define CMD_HARDWARE      0x06
 
-  #define HW_RSSI           0x21
+  #define HW_SNR_RSSI       0x21  // SNR and RSSI of received packet
   #define HW_SF             0x22  // LoRa Spreading Factor - one byte value
   #define HW_CR             0x23  // LoRa Coding Rate - one byte value
   #define HW_BW             0x24  // LoRa Bandwidth - four byte value (MSB first)

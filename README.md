@@ -47,7 +47,7 @@ The Config.h file contains the pinouts for the different Arduino-based boards. T
 
 Basically, after checking the Config.h file for correctness, build and upload to your Arduino-based board.
 
-The KISS SetHardware (0x06) command supports the follow options:
+The KISS SetHardware (0x06) command supports the follow options (PC to TNC):
 | Option | Data | Description |
 | --- | --- | --- |
 | 0x22 | uint8_t | LoRa Spreading Factor (6 - 12) |
@@ -67,6 +67,16 @@ To set a frequency of 433.775 MHz: 0xC0 0x06 0x25 0x19 0xDA 0xE1 0x98 0xC0
 To save hardware parameters in EEPROM: 0xC0 0x06 0x27 0xC0
 
 Note: Follow proper KISS byte escaping if FEND (0xC0) or FESC (0xDB) appear in the data
+
+Preceding each received frame, the SNR and RSSI of the received frame is sent from the TNC to the PC
+using a KISS SetHardware (0x06) command:
+| Option | Data | Description |
+| --- | --- | --- |
+| 0x21 | int8_t | SNR (dB) |
+| | int16_t | RSSI (dBm, MSB first) |
+
+For example, for SNR of 10 dB and an RSSI of -45 dBm the packet would be (in hex bytes):
+0xC0 0x06 0x21 0x0A 0xFF 0xD3 0xC0
 
 For details on the KISS protocol, please refer to [The KISS TNC: A simple Host-to-TNC communications protocol](http://www.ax25.net/kiss.aspx)
 

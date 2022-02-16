@@ -29,9 +29,12 @@
   
   #define MTU  255
   #define CMD_L       4
-  int     lastRssi = -292;
-  uint8_t lastRssiRaw = 0x00;
   size_t  readLength = 0;
+  int16_t lastRssi;
+  int8_t lastSnr;
+  uint8_t snrRssi[3];
+  bool receiveReady = false;
+  int receivePacketSize = 0;
 
   #if MCU_VARIANT == MCU_328P
     const int pinNSS = 10;
